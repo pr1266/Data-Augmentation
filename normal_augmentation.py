@@ -1,35 +1,55 @@
 import torch
+import torchvision
 from torchvision.transforms import Compose
 from torchvision import transforms
 from torchvision import datasets
 from torch.utils.data import DataLoader
+from torchvision.utils import save_image
 import matplotlib.pyplot as plt
 import os
-from cv2 import cv2
 
 torch.manual_seed(17)
 os.system('cls')
 
 #! first we specify path to our data:
 data_dir = 'data'
-#! and then create a transform compose object to perform some sequential transformations like Resize, Crop and etc. 
-transform = transforms.Compose([
-    transforms.Resize((255, 255)),
-    transforms.ToTensor()
-    ])
 
-#! then create a dataset object
-dataset = datasets.ImageFolder(data_dir, transform=transform)
-print(dataset)
-data_loader = DataLoader(dataset, batch_size=5, shuffle=False)
-data_loader = iter(data_loader)
 
-img, label = next(data_loader)
+config = {
+    'first_stage_augment': [
+        transforms.Resize((255, 255)),
+        transforms.Grayscale(),
+        transforms.ToTensor()
+    ],
+    'second_stage_augment': [
+        transforms.Resize((255, 255)),
+        transforms.GaussianBlur((7, 7)),
+        transforms.ToTensor()
+    ],
+    'third_stage_augment': [
+        transforms.Resize((255, 255)),
+        transforms.RandomEqualize(1.0),
+        transforms.ToTensor()
+    ]
+}
 
-# print the total no of samples
-print('Number of samples: ', len(img))
-image = img[2][0]  # load 3rd sample
-  
-# visualize the image
-plt.imshow(image)
-plt.show()
+for index, key in enumerate(config):
+    print(config[key])
+    dataset = datasets.ImageFolder(data_dir, transform=Compose(config[key]))
+    data_loader = DataLoader(dataset, batch_size=4, shuffle=False)
+    data_loader = iter(data_loader)
+    index = 0
+
+
+    if not os.path.exists(key):
+        os.makedirs(key)
+
+    for img, label in data_loader:
+        image = img
+        grid = torchvision.utils.make_grid(img)
+        img = torchvision.transforms.ToPILImage()(grid)
+        # img.show()
+        path = f'{key}/'+str(index)+'.jpg'
+        print(path)
+        torchvision.utils.save_image(image, path)
+        index += 1
