@@ -15,3 +15,5 @@ class Sequence(object):
             else:
                 prob = self.probs
             
+            img, bbox = augmentation(img, bbox)
+        return img, bbox
