@@ -1,6 +1,7 @@
 import torch
 import torchvision
 from torchvision.transforms import Compose
+from torchvision.transforms import functional as F
 from torchvision import transforms
 from torchvision import datasets
 from torch.utils.data import DataLoader
@@ -30,16 +31,20 @@ config = {
         transforms.Resize((255, 255)),
         transforms.RandomEqualize(1.0),
         transforms.ToTensor()
+    ],
+    'fourth_stage_augment': [
+        transforms.Resize((255, 255)),
+        AdjustBrighnessTransform(3.0),
+        transforms.ToTensor()
     ]
 }
 
 for index, key in enumerate(config):
-    print(config[key])
+
     dataset = datasets.ImageFolder(data_dir, transform=Compose(config[key]))
     data_loader = DataLoader(dataset, batch_size=4, shuffle=False)
     data_loader = iter(data_loader)
     index = 0
-
 
     if not os.path.exists(key):
         os.makedirs(key)
@@ -48,8 +53,6 @@ for index, key in enumerate(config):
         image = img
         grid = torchvision.utils.make_grid(img)
         img = torchvision.transforms.ToPILImage()(grid)
-        # img.show()
         path = f'{key}/'+str(index)+'.jpg'
-        print(path)
         torchvision.utils.save_image(image, path)
         index += 1
