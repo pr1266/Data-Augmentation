@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 import matplotlib.pyplot as plt
 import os
+from custom_functional_transforms import CustomGaussianBlurTransform, CustomTransform
 
 torch.manual_seed(17)
 os.system('cls')
@@ -17,24 +18,49 @@ data_dir = 'data'
 
 
 config = {
-    'first_stage_augment': [
+    '1st_stage_augment': [
         transforms.Resize((255, 255)),
         transforms.Grayscale(),
         transforms.ToTensor()
     ],
-    'second_stage_augment': [
+    '2nd_stage_augment': [
         transforms.Resize((255, 255)),
         transforms.GaussianBlur((7, 7)),
         transforms.ToTensor()
     ],
-    'third_stage_augment': [
+    '3rd_stage_augment': [
         transforms.Resize((255, 255)),
         transforms.RandomEqualize(1.0),
         transforms.ToTensor()
     ],
-    'fourth_stage_augment': [
+    '4th_stage_augment': [
         transforms.Resize((255, 255)),
-        AdjustBrighnessTransform(3.0),
+        CustomTransform(F.adjust_brightness, 3.0),
+        transforms.ToTensor()
+    ],
+    '5th_stage_augment': [
+        transforms.Resize((255, 255)),
+        CustomTransform(F.adjust_contrast, 4.2),
+        transforms.ToTensor()
+    ],
+    '6th_stage_augment': [
+        transforms.Resize((255, 255)),
+        CustomTransform(F.adjust_hue, -0.3),
+        transforms.ToTensor()
+    ],
+    '7th_stage_augment': [
+        transforms.Resize((255, 255)),
+        CustomTransform(F.adjust_saturation, 7.0),
+        transforms.ToTensor()
+    ],
+    '8th_stage_augment': [
+        transforms.Resize((255, 255)),
+        CustomTransform(F.adjust_sharpness, 3.0),
+        transforms.ToTensor()
+    ],
+    '9th_stage_augment': [
+        transforms.Resize((255, 255)),
+        CustomGaussianBlurTransform(None, 7),
         transforms.ToTensor()
     ]
 }
