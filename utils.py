@@ -130,6 +130,7 @@ def _convert_xml_annotation(filename, coord_type, resize, task = 'object detecti
                             instance_idx += 1
                         else:
                             # fill 0 as background
+                            # https://github.com/sassoftware/python-dlpy/blob/master/dlpy/utils.py
                             ignore_mask = cv2.fillConvexPoly(ignore_mask, vertices, 0)
 
                     except NameError:
