@@ -3,6 +3,10 @@ from matplotlib import pyplot as plt
 import albumentations as A
 import glob
 import os
+from custom_functional_transforms import *
+import torchvision.transforms.functional as my_f
+from torchvision.transforms import Compose
+from torchvision import transforms
 
 os.system('cls')
 
@@ -56,7 +60,17 @@ for box in transformed_bboxes:
     if b > dh - 1:
         b = dh - 1
 
-    cv2.rectangle(new_image, (l, t), (r, b), (0, 0, 255), 6)
+    cropped = new_image[t:b,l:r]
+    tr = Compose([
+            transforms.ToPILImage(),
+            CustomTransform(my_f.adjust_contrast, 3.0),
+            # transforms.ToTensor()
+        ])
+    new_cropped = tr(cropped)
+    new_image[t:b,l:r] = new_cropped
+
+    color = (255, 0, 0) if c == 'broken' else (0, 255, 0) 
+    cv2.rectangle(new_image, (l, t), (r, b), color, 6)
 
 plt.imshow(new_image)
 plt.show()
