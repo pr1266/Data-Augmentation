@@ -8,6 +8,7 @@ import torchvision.transforms.functional as my_f
 from torchvision.transforms import Compose
 from torchvision import transforms
 from utils import *
+from torchvision.utils import save_image
 
 os.system('cls')
 
@@ -28,7 +29,7 @@ cfg = {
     'bounding_box': [
         A.CenterCrop(800, 800),
         A.RandomCrop(800, 800),
-        A.HorizontalFlip(True, 1.0)
+        A.VerticalFlip(True, 1.0)
     ],
     'inner_bounding_box': [
         CustomTransform(my_f.adjust_saturation, 8),
@@ -38,15 +39,33 @@ cfg = {
 
 class BoundingBoxAugmentation:
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, save_dir='test_data'):
         self.format = cfg['format']
         self.target_size = cfg['target_size']
         self.cfg = cfg
         self.transforms = self.create_transform()
-        
+        self.save_dir = save_dir
+
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+
+
     def __call__(self, img, bbox):
-        
-        
+        index=0
+        for transform in self.transforms:
+            transformed = transform(image=img, bboxes=bbox)
+            transformed_image = transformed['image']                
+            transformed_bboxs = transformed['bboxes']
+            save_path = self.save_dir + '/' + str(index) + '.jpg'
+            image_to_save = transforms.ToTensor()(transformed_image)
+            save_image(image_to_save, save_path)
+            index += 1
+            #! inja ham bia bbox zakhire kon:
+
+
+    def save_instance(self, img, bbox):
+
+        pass
 
     def create_transform(self):
 
@@ -65,7 +84,7 @@ class BoundingBoxAugmentation:
 
 
 x = BoundingBoxAugmentation(cfg)
-
+t = x(image, bbox)
 
     
 
