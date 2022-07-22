@@ -7,31 +7,36 @@ from custom_functional_transforms import *
 import torchvision.transforms.functional as my_f
 from torchvision.transforms import Compose
 from torchvision import transforms
+from utils import *
 
 os.system('cls')
 
 img_path = 'teeth_data/279.jpg'
 txt_path = 'teeth_data/279.txt'
 
-image = cv2.imread(img_path)
-image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+bbox = load_bbox(txt_path)
+image = load_image(img_path)
 
 
 
-lines = []
-with open(txt_path, 'r') as F:
-    lines = F.readlines()
+config = {
+    '1st_stage':{
+        'bounding_box': [
 
-bbox = []
-for line in lines:
-    line = line.replace('\n', '')
-    elements = line.split(',')
-    single_box = [float(i) for i in elements[1:]]
-    single_box.append(elements[0])
-    bbox.append(single_box)
+        ],
+        'inner_bounding_box':[
+
+        ]
+    }
+}
+
+
+
+
 
 transform = A.Compose([
-    A.RandomCrop(width=800, height=800),
+    A.CenterCrop(width=800, height=800),
     A.HorizontalFlip(p=0.5),
     A.RandomBrightnessContrast(p=0.2),
 ], bbox_params=A.BboxParams(format='yolo'))
@@ -43,7 +48,6 @@ transformed_bboxes = transformed['bboxes']
 new_image = transformed_image
 dh, dw, _ = new_image.shape
 for box in transformed_bboxes:
-    print(box)
     x, y, w, h, c = box
 
     l = int((x - w / 2) * dw)
@@ -63,8 +67,7 @@ for box in transformed_bboxes:
     cropped = new_image[t:b,l:r]
     tr = Compose([
             transforms.ToPILImage(),
-            CustomTransform(my_f.adjust_contrast, 3.0),
-            # transforms.ToTensor()
+            CustomTransform(my_f.adjust_saturation, 8),
         ])
     new_cropped = tr(cropped)
     new_image[t:b,l:r] = new_cropped

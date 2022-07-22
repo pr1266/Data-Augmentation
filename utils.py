@@ -168,11 +168,33 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
     plt.axis('off')
     plt.imshow(img)
 
+def load_bbox(txt_path):
+
+    lines = []
+    with open(txt_path, 'r') as F:
+        lines = F.readlines()
+
+    bbox = []
+    for line in lines:
+        line = line.replace('\n', '')
+        elements = line.split(',')
+        single_box = [float(i) for i in elements[1:]]
+        single_box.append(elements[0])
+        bbox.append(single_box)
+    return bbox
+
+def load_image(img_path):
+    image = cv2.imread(img_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    return image
+    
 def test():
     
     list = glob.glob('teeth_data/*.xml')
     for i in list:    
         _convert_xml_annotation(i, 'yolo', 0)
+
+
 
 if __name__ == '__main__':
     test()
