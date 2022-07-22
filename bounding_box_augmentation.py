@@ -19,12 +19,17 @@ bbox = load_bbox(txt_path)
 image = load_image(img_path)
 
 
+cfg = {
+    'bounding_box': [
+        A.CenterCrop(800, 800),
+    ]
+}
 
 config = {
     '1st_stage':{
         'bounding_box': [
             A.CenterCrop(width=800, height=800),
-            transforms.HorizontalFlip(p=0.5),
+            A.HorizontalFlip(p=0.5),
             A.RandomBrightnessContrast(p=0.2),
         ],
         'inner_bounding_box':[
@@ -36,9 +41,24 @@ config = {
 
 
 
+class BoundingBoxAugmentation:
+
+    def __init__(self, cfg, format='yolo'):
+        self.format = format
+        self.cfg = cfg
 
 
-# transform = A.Compose(, bbox_params=A.BboxParams(format='yolo'))
+    def __call__(self, img, bbox):
+
+        pass
+
+
+    def create_transform(self):
+
+        cfg = self.cfg
+    
+
+transform = A.Compose(config['1st_stage']['bounding_box'], bbox_params=A.BboxParams(format='yolo'))
 
 
 transformed = transform(image=image, bboxes=bbox)
