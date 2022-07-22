@@ -23,10 +23,13 @@ image = load_image(img_path)
 config = {
     '1st_stage':{
         'bounding_box': [
-
+            A.CenterCrop(width=800, height=800),
+            transforms.HorizontalFlip(p=0.5),
+            A.RandomBrightnessContrast(p=0.2),
         ],
         'inner_bounding_box':[
-
+            transforms.ToPILImage(),
+            CustomTransform(my_f.adjust_saturation, 8),
         ]
     }
 }
@@ -35,11 +38,7 @@ config = {
 
 
 
-transform = A.Compose([
-    A.CenterCrop(width=800, height=800),
-    A.HorizontalFlip(p=0.5),
-    A.RandomBrightnessContrast(p=0.2),
-], bbox_params=A.BboxParams(format='yolo'))
+# transform = A.Compose(, bbox_params=A.BboxParams(format='yolo'))
 
 
 transformed = transform(image=image, bboxes=bbox)
