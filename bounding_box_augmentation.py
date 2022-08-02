@@ -13,9 +13,10 @@ from torchvision.utils import save_image
 os.system('cls')
 
 data_dir = 'teeth_data/'
-
-dataset = MyDataset('teeth_data/', 'yolo')
-
+classes = {
+    'normal': 0,
+    'broken': 1
+}
 cfg = {
     'format': 'yolo',
     'target_size': (400, 400),
@@ -40,17 +41,17 @@ class MyDataset(Dataset):
         #! inja bekhoon:
         list = glob.glob(self.path+'*.jpg')
         
-        prefix = 'txt'
+        self.prefix = 'txt'
         if self.format == 'yolo':
-            prefix = 'txt'
+            self.prefix = 'txt'
         elif self.format == 'pascal':
-            prefix = 'xml'
+            self.prefix = 'xml'
         elif self.format == 'coco':
-            prefix = 'json'
+            self.prefix = 'json'
 
         for i in list:
             image = cv2.imread(i)
-            bbox = load_bbox(i[:-3]+'txt')
+            bbox = load_bbox(i[:-3]+self.prefix)
             dict_ = {
                 'image': image,
                 'bbox': bbox
@@ -69,13 +70,19 @@ class BoundingBoxAugmentation:
         self.index = 0
         self.format = cfg['format']
         self.prefix = None
-        
+        self.delimiter = None
+
         if self.format == 'yolo':
             self.prefix = '.txt'
+            self.delimiter = ' '
+
         elif self.format == 'coco':
             self.prefix = '.json'
+            #! soon
+
         elif self.format == 'pascal':
             self.prefix = '.xml'
+            #! soon
 
         self.target_size = cfg['target_size']
         self.cfg = cfg
@@ -102,7 +109,7 @@ class BoundingBoxAugmentation:
                 #! other formats will be added soon
                 for index, i in enumerate(transformed_bboxs):             
                     vals = [str(val) for val in list(i[:-1])]                    
-                    to_write = i[-1] + ' ' + ' '.join(vals)+'\n'                    
+                    to_write = str(classes[i[-1]]) + self.delimiter + self.delimiter.join(vals) + '\n'                    
                     f.writelines(to_write)
             index += 1
         self.index += 1
@@ -179,9 +186,14 @@ class InnerBoundingBoxAugmentation:
                 _transform.append(t)
         return _transform
 
-bbox_augmentation = BoundingBoxAugmentation(cfg)
-for i in range(len(dataset)):
-    bbox_augmentation(dataset[i])
+def main():
+    dataset = MyDataset('teeth_data/', 'yolo')
+    bbox_augmentation = BoundingBoxAugmentation(cfg)
+    for i in range(len(dataset)):
+        bbox_augmentation(dataset[i])
+
+if __name__ == '__main__':
+    main()
 
 # transform = A.Compose(config['1st_stage']['bounding_box'], bbox_params=A.BboxParams(format='yolo'))
 
