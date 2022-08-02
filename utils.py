@@ -188,47 +188,14 @@ def load_image(img_path):
     image = cv2.imread(img_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
-    
 
-class MyDataset(Dataset):
-
-    def __init__(self, path, format):
-        assert format in ['yolo', 'coco', 'xml'], "format must be in yolo, coco or pascal"
-        self.path = path
-        self.format = format
-        self.data = []
-        #! inja bekhoon:
-        list = glob.glob(self.path+'*.jpg')
-        
-        prefix = 'txt'
-        if self.format == 'yolo':
-            prefix = 'txt'
-        elif self.format == 'pascal':
-            prefix = 'xml'
-        elif self.format == 'coco':
-            prefix = 'json'
-
-        for i in list:
-            image = cv2.imread(i)
-            bbox = load_bbox(i[:-3]+'txt')
-            dict_ = {
-                'image': image,
-                'bbox': bbox
-            }
-            self.data.append(dict_)
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, index):
-        return self.data[index]
 
 def test():
-    
+    pass  
     # list = glob.glob('teeth_data/*.xml')
     # for i in list:    
     #     _convert_xml_annotation(i, 'yolo', 0)
-    x = MyDataset('teeth_data/', 'yolo')
+    # x = MyDataset('teeth_data/', 'yolo')
 
 if __name__ == '__main__':
     test()

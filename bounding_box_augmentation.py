@@ -30,6 +30,39 @@ cfg = {
     ]
 }
 
+class MyDataset(Dataset):
+
+    def __init__(self, path, format):
+        assert format in ['yolo', 'coco', 'xml'], "format must be in yolo, coco or pascal"
+        self.path = path
+        self.format = format
+        self.data = []
+        #! inja bekhoon:
+        list = glob.glob(self.path+'*.jpg')
+        
+        prefix = 'txt'
+        if self.format == 'yolo':
+            prefix = 'txt'
+        elif self.format == 'pascal':
+            prefix = 'xml'
+        elif self.format == 'coco':
+            prefix = 'json'
+
+        for i in list:
+            image = cv2.imread(i)
+            bbox = load_bbox(i[:-3]+'txt')
+            dict_ = {
+                'image': image,
+                'bbox': bbox
+            }
+            self.data.append(dict_)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        return self.data[index]
+
 class BoundingBoxAugmentation:
 
     def __init__(self, cfg, save_dir='test_data'):
@@ -60,7 +93,6 @@ class BoundingBoxAugmentation:
             transformed = transform(image=img, bboxes=bbox)
             transformed_image = transformed['image']                
             transformed_bboxs = transformed['bboxes']
-            print(transformed_bboxs)
             image_save_path = self.save_dir + '/' + str(index) + str(self.index) + '.jpg'
             bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + self.prefix
             image_to_save = transforms.ToTensor()(transformed_image)
@@ -73,8 +105,6 @@ class BoundingBoxAugmentation:
                     to_write = i[-1] + ' ' + ' '.join(vals)+'\n'                    
                     f.writelines(to_write)
             index += 1
-        
-            #! inja ham bia bbox zakhire kon:
         self.index += 1
 
     def create_transform(self):
@@ -82,7 +112,6 @@ class BoundingBoxAugmentation:
         cfg = self.cfg
         _transform = []
         if 'bounding_box' in self.cfg.keys():
-            
             for augmentation in cfg['bounding_box']:
                 t = A.Compose([
                     augmentation,
@@ -92,13 +121,67 @@ class BoundingBoxAugmentation:
                 _transform.append(t)
         return _transform
 
+class InnerBoundingBoxAugmentation:
+    def __init__(self, cfg, save_dir='test_data'):
+        self.index = 0
+        self.format = cfg['format']
+        self.prefix = None
+        
+        if self.format == 'yolo':
+            self.prefix = '.txt'
+        elif self.format == 'coco':
+            self.prefix = '.json'
+        elif self.format == 'pascal':
+            self.prefix = '.xml'
+
+        self.target_size = cfg['target_size']
+        self.cfg = cfg
+        self.transforms = self.create_transform()
+        self.save_dir = save_dir
+
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+
+    def __call__(self, data):
+        index=0
+        img = data['image']
+        bbox = data['bbox']
+        for transform in self.transforms:
+            transformed = transform(image=img, bboxes=bbox)
+            transformed_image = transformed['image']                
+            transformed_bboxs = transformed['bboxes']
+            image_save_path = self.save_dir + '/' + str(index) + str(self.index) + '.jpg'
+            bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + self.prefix
+            image_to_save = transforms.ToTensor()(transformed_image)
+            save_image(image_to_save, image_save_path)
+            with open(bbox_save_path, 'w') as f:
+                #! just implemented for yolo format because im currently use it
+                #! other formats will be added soon
+                for index, i in enumerate(transformed_bboxs):             
+                    vals = [str(val) for val in list(i[:-1])]                    
+                    to_write = i[-1] + ' ' + ' '.join(vals)+'\n'                    
+                    f.writelines(to_write)
+            index += 1
+        self.index += 1
+
+    def create_transform(self):
+
+        cfg = self.cfg
+        _transform = []
+        if 'inner_bounding_box' in self.cfg.keys():
+            for augmentation in cfg['inner_bounding_box']:
+                #! to change:
+                t = A.Compose([
+                    augmentation,
+                    A.Resize(self.target_size[0], self.target_size[1])
+                ],
+                bbox_params=A.BboxParams(format=self.format))
+                _transform.append(t)
+        return _transform
 
 bbox_augmentation = BoundingBoxAugmentation(cfg)
 for i in range(len(dataset)):
     bbox_augmentation(dataset[i])
-    print('success')
-
-    
 
 # transform = A.Compose(config['1st_stage']['bounding_box'], bbox_params=A.BboxParams(format='yolo'))
 
