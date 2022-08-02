@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from cv2 import cv2
 import glob
+from torch.utils.data import Dataset
 
 BOX_COLOR = (255, 0, 0) # Red
 TEXT_COLOR = (255, 255, 255) # White
@@ -188,6 +189,27 @@ def load_image(img_path):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
     
+
+class MyDataset(Dataset):
+
+    def __init__(self, path):
+        self.path = path
+        self.data = {}
+        #! inja bekhoon:
+        list = glob.glob(self.path+'*.jpg')
+        for i in list:    
+            
+            image = cv2.imread(i)
+            
+            
+            
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        pass
+
 def test():
     
     list = glob.glob('teeth_data/*.xml')

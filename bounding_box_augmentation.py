@@ -12,15 +12,7 @@ from torchvision.utils import save_image
 
 os.system('cls')
 
-img_path = 'teeth_data/279.jpg'
-txt_path = 'teeth_data/279.txt'
-
-
-bbox = load_bbox(txt_path)
-image = load_image(img_path)
-
-
-
+data_dir = 'teeth_data/'
 
 
 cfg = {
@@ -86,7 +78,7 @@ class BoundingBoxAugmentation:
 x = BoundingBoxAugmentation(cfg)
 t = x(image, bbox)
 
-    
+
 
 # transform = A.Compose(config['1st_stage']['bounding_box'], bbox_params=A.BboxParams(format='yolo'))
 
