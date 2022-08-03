@@ -88,10 +88,10 @@ def convert_xml_annotation(filename, coord_type, resize, task='object detection'
 
                         except ValueError:
                             raise print('{} is not in name file'.format(str(cls)))
-                        out_file.write(idx + " " + " ".join([str(box) for box in boxes]) + '\n')
-                    
+                        out_file.write(idx + " " + " ".join([str(box) for box in boxes]) + '\n')                    
                     else:
-                        out_file.write(str(cls) + "," + ",".join([str(box) for box in boxes]) + '\n')
+                        
+                        out_file.write(str(cls) + " " + " ".join([str(box) for box in boxes]) + '\n')
 
 
 def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=2):
@@ -147,7 +147,7 @@ def load_bbox(txt_path):
     bbox = []
     for line in lines:
         line = line.replace('\n', '')
-        elements = line.split(' ')
+        elements = line.split(',')
         single_box = [float(i) for i in elements[1:]]
         single_box.append(elements[0])
         bbox.append(single_box)
@@ -161,12 +161,12 @@ def load_image(img_path):
 
 def test():
 
-    image = cv2.imread('test_data/00inner_bbox.jpg')
-    bbox = load_bbox('test_data/00inner_bbox.txt')
-    visualize(image, bbox, [0], {0:'raccoon'})
+    # image = cv2.imread('test_data/00inner_bbox.jpg')
+    # bbox = load_bbox('test_data/00inner_bbox.txt')
+    # visualize(image, bbox, [0], {0:'raccoon'})
     
     os.system('cls')
-    list = glob.glob('test_data/*.jpg')
+    list = glob.glob('copy/*.jpg')
     list = random.sample(list, 36)
     bbox = [load_bbox(i[:-3]+'txt') for i in list]
     
