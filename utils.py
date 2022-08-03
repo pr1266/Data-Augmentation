@@ -9,7 +9,7 @@ import glob
 BOX_COLOR = (255, 0, 0)
 TEXT_COLOR = (255, 255, 255)
 
-def _convert_yolo(size, box):
+def convert_yolo(size, box):
     #! yolo format: [x_center, y_center, width, height] and all values are normalized
     dw = 1./size[0]
     dh = 1./size[1]
@@ -23,7 +23,7 @@ def _convert_yolo(size, box):
     h = h*dh
     return (x,y,w,h)
 
-def _convert_coco(size, box, resize):
+def convert_coco(size, box, resize):
     #! coco format: [x_min, y_min, width, height] values are not normalized
     w_ratio = float(resize[0]) / size[0]
     h_ratio = float(resize[1]) / size[1]
@@ -33,7 +33,7 @@ def _convert_coco(size, box, resize):
     y_max = box[3] * h_ratio
     return (x_min, y_min, x_max, y_max)
 
-def _convert_xml_annotation(filename, coord_type, resize, task='object detection', name_file=None):
+def convert_xml_annotation(filename, coord_type, resize, task='object detection', name_file=None):
     #! pascal format: [x_min, y_min, x_max, y_max] values are not normalized
     with open(filename) as in_file:
         filename, file_extension = os.path.splitext(filename)
@@ -73,10 +73,10 @@ def _convert_xml_annotation(filename, coord_type, resize, task='object detection
                     boxes = (xmin, ymin, xmax, ymax)
 
                     if coord_type == 'yolo':
-                        boxes = _convert_yolo((width, height), boxes)
+                        boxes = convert_yolo((width, height), boxes)
 
                     elif coord_type == 'coco':
-                        boxes = _convert_coco((width, height), boxes, resize)
+                        boxes = convert_coco((width, height), boxes, resize)
 
                     if name_file:
                         try:
@@ -91,21 +91,34 @@ def _convert_xml_annotation(filename, coord_type, resize, task='object detection
 
 
 def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=2):
-    
-    x_min, y_min, w, h = bbox
+    dh, dw, _ = img.shape
+    x_min, y_min, w, h, _ = bbox
     x_min, x_max, y_min, y_max = int(x_min), int(x_min + w), int(y_min), int(y_min + h)
-   
-    cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color=color, thickness=thickness)
+    x, y, w, h, c = bbox
+    l = int((x - w / 2) * dw)
+    r = int((x + w / 2) * dw)
+    t = int((y - h / 2) * dh)
+    b = int((y + h / 2) * dh)
     
-    ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)    
-    cv2.rectangle(img, (x_min, y_min - int(1.3 * text_height)), (x_min + text_width, y_min), BOX_COLOR, -1)
+    if l < 0:
+        l = 0
+    if r > dw - 1:
+        r = dw - 1
+    if t < 0:
+        t = 0
+    if b > dh - 1:
+        b = dh - 1
+
+    cv2.rectangle(img, (l, t), (r, b), color=color, thickness=thickness)
+    ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)  
+    cv2.rectangle(img, (l, t - int(1.3 * text_height)), (l + text_width, t), BOX_COLOR, -1)
     cv2.putText(
         img,
         text=class_name,
-        org=(x_min, y_min - int(0.3 * text_height)),
+        org=(l, t - int(0.3 * text_height)),
         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
         fontScale=0.35, 
-        color=TEXT_COLOR, 
+        color=TEXT_COLOR,
         lineType=cv2.LINE_AA,
     )
     return img
@@ -117,9 +130,7 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
     for bbox, category_id in zip(bboxes, category_ids):
         class_name = category_id_to_name[category_id]
         img = visualize_bbox(img, bbox, class_name)
-    plt.figure(figsize=(12, 12))
-    plt.axis('off')
-    plt.imshow(img)
+    return img
 
 def load_bbox(txt_path):
 
@@ -143,10 +154,10 @@ def load_image(img_path):
 
 
 def test():
-    pass  
-    list = glob.glob('teeth_data/*.xml')
-    for i in list:    
-        _convert_xml_annotation(i, 'yolo', 0)
+    os.system('cls')
+    image = load_image('raccoon/raccoon/raccoon-1.jpg')
+    bbox = load_bbox('raccoon/raccoon/raccoon-1.txt')
+    visualize(image, bbox, [0,], {0:'raccoon'})
 
 if __name__ == '__main__':
     test()
