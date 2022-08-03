@@ -33,15 +33,15 @@ cfg = {
     'format': 'yolo',
     'target_size': (640, 640),
     'bounding_box': [
-        A.CenterCrop(100, 100),
-        A.RandomCrop(100, 100),
+        # A.CenterCrop(100, 100),
+        # A.RandomCrop(100, 100),
         CustomTransform(F.adjust_brightness, 3.0),
         CustomTransform(F.adjust_contrast, 4.2),
         CustomTransform(F.adjust_sharpness, 3.0),
         # transforms.Grayscale(),
         CustomTransform(my_f.adjust_saturation, 8),
         CustomTransform(F.adjust_hue, -0.3),
-        CustomGaussianBlurTransform(None, 21),
+        CustomGaussianBlurTransform(None, 5),
     ],
     'inner_bounding_box': [
         transforms.RandomEqualize(1.0),
@@ -51,7 +51,7 @@ cfg = {
         # transforms.Grayscale(),
         CustomTransform(my_f.adjust_saturation, 8),
         CustomTransform(F.adjust_hue, -0.3),
-        CustomGaussianBlurTransform(None, 21),
+        CustomGaussianBlurTransform(None, 5),
     ]
 }
 
@@ -140,7 +140,7 @@ class BoundingBoxAugmentation:
             with open(bbox_save_path, 'w') as f:
                 #! just implemented for yolo format because im currently use it
                 #! other formats will be added soon
-                for index, i in enumerate(transformed_bboxs):             
+                for _, i in enumerate(transformed_bboxs):             
                     vals = [str(val) for val in list(i[:-1])]                    
                     to_write = str(classes[i[-1]]) + self.delimiter + self.delimiter.join(vals) + '\n'                    
                     f.writelines(to_write)
@@ -197,7 +197,8 @@ class InnerBoundingBoxAugmentation:
 
         for transform in self.transforms:
             new_image = img
-            for bbox in bboxs:
+            new_bboxs = bboxs
+            for bbox in new_bboxs:
                 x, y, w, h, c = bbox
                 l = int((x - w / 2) * dw)
                 r = int((x + w / 2) * dw)
@@ -213,15 +214,16 @@ class InnerBoundingBoxAugmentation:
                 if b > dh - 1:
                     b = dh - 1
 
-                cropped = img[t:b,l:r]
+                cropped = new_image[t:b,l:r]
                 if isinstance(cropped, PIL.Image.Image):
                     new_cropped = transform(cropped)
                 else:
                     new_cropped = transform(transforms.ToPILImage()(cropped))
                 new_image[t:b,l:r] = new_cropped
-            
-            image_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'inner_bbox' + '.jpg'
+
+            image_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'inner_bbox' + '.jpg'            
             bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'inner_bbox' + self.prefix
+            
 
             image_to_save = transforms.ToTensor()(new_image)
             #! resize whole image to target size:
@@ -231,7 +233,7 @@ class InnerBoundingBoxAugmentation:
             with open(bbox_save_path, 'w') as f:
                 #! just implemented for yolo format because im currently use it
                 #! other formats will be added soon
-                for index, i in enumerate(bboxs):  
+                for _, i in enumerate(bboxs):  
                     vals = [str(val) for val in list(i[:-1])]                    
                     to_write = i[-1] + ' ' + ' '.join(vals)+'\n'                    
                     f.writelines(to_write)
@@ -255,13 +257,24 @@ class InnerBoundingBoxAugmentation:
                 _transform.append(t)
         return _transform
 
-def main():
+def inner_box_augmentation():
     dataset = MyDataset('raccoon/raccoon/', 'yolo')
     inner_bbox_augmentation = InnerBoundingBoxAugmentation(cfg)
-    bbox_augmentation = BoundingBoxAugmentation(cfg)
     for i in range(len(dataset)):
         inner_bbox_augmentation(dataset[i])
+
+def bounding_box_augmentation():
+    dataset = MyDataset('raccoon/raccoon/', 'yolo')
+    bbox_augmentation = BoundingBoxAugmentation(cfg)
+    for i in range(len(dataset)):
         bbox_augmentation(dataset[i])
+
+def main():
+    inner_box_augmentation()
+    bounding_box_augmentation()
+
+    
+
 
 if __name__ == '__main__':
     main()

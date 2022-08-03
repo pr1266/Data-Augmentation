@@ -1,4 +1,6 @@
 import torchvision.transforms.functional as F
+import torchvision.transforms as T
+import PIL
 
 class CustomTransform(object):
 
@@ -8,9 +10,13 @@ class CustomTransform(object):
 
     def __call__(self, img):
 
-        img = self.func(img, self.factor)
+        if isinstance(img, PIL.Image.Image):
+            img = self.func(img, self.factor)
+        
+        else:
+            img = self.func(T.ToPILImage()(img), self.factor)
+        
         return img
-
 
 class CustomGaussianBlurTransform(object):
 
@@ -19,6 +25,8 @@ class CustomGaussianBlurTransform(object):
         self.k_size = k_size
 
     def __call__(self, img):
-
-        img = F.gaussian_blur(img, kernel_size=(self.k_size, self.k_size), sigma = self.sigma)
+        if isinstance(img, PIL.Image.Image):
+            img = F.gaussian_blur(img, kernel_size=(self.k_size, self.k_size), sigma = self.sigma)
+        else:
+            img = F.gaussian_blur(T.ToPILImage()(img), kernel_size=(self.k_size, self.k_size), sigma = self.sigma)
         return img

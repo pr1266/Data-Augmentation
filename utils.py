@@ -147,7 +147,7 @@ def load_bbox(txt_path):
     bbox = []
     for line in lines:
         line = line.replace('\n', '')
-        elements = line.split(',')
+        elements = line.split(' ')
         single_box = [float(i) for i in elements[1:]]
         single_box.append(elements[0])
         bbox.append(single_box)
@@ -166,7 +166,7 @@ def test():
     # visualize(image, bbox, [0], {0:'raccoon'})
     
     os.system('cls')
-    list = glob.glob('copy/*.jpg')
+    list = glob.glob('test_data/*.jpg')
     list = random.sample(list, 36)
     bbox = [load_bbox(i[:-3]+'txt') for i in list]
     
