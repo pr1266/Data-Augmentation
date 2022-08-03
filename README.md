@@ -8,4 +8,4 @@ from your small one.
 
 ### Built With
 
-* [![PyTorch][https://img.shields.io/badge/pytorch-ff8200?style=for-the-badge&logo=PyTorch&logoColor=white]][https://github.com/pytorch/pytorch]
+* (https://img.shields.io/badge/pytorch-ff8200?style=for-the-badge&logo=PyTorch&logoColor=white)https://github.com/pytorch/pytorch
