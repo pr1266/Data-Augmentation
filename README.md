@@ -8,9 +8,13 @@ from your small one.
 
 ### Built With
 
-*[![PyTorch][Next.js]][Next-url]
+* [![PyTorch][torchlogo]][torchurl]
+* [![Albumentation][alblogo]][alburl]
 
 
 
-[Next.js]: https://img.shields.io/badge/pytorch-ff8200?style=for-the-badge&logo=PyTorch&logoColor=white
-[Next-url]: https://pytorch.org/
+[torchlogo]: https://img.shields.io/badge/pytorch-ff8200?style=for-the-badge&logo=PyTorch&logoColor=white
+[torchurl]: https://pytorch.org/
+
+[alblogo]: https://img.shields.io/badge/Albumentations-FFFFFF?style=for-the-badge
+[alblogo]: https://albumentations.ai/
