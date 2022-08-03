@@ -10,7 +10,14 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 from utils import *
 from torchvision.utils import save_image
-
+"""
+one of the most common issues that data scientist are faced in real AI and Computer Vision
+projects is data insufficiency. Deep Learning algorithms usually needs a lot of data to solve our problem
+and data gathering is expensive, time-consuming, and in some cases impossible
+therefore, data augmentation is an important task to generate massive data from a small dataset
+in this project, you can apply many augmentation methods to your data to generate a massive and sufficient dataset
+from your samll one. just change data_dir to your txt-jpg containing directory and run this script.
+"""
 os.system('cls')
 
 data_dir = 'teeth_data/'

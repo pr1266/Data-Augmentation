@@ -157,7 +157,7 @@ def test():
     os.system('cls')
     image = load_image('raccoon/raccoon/raccoon-1.jpg')
     bbox = load_bbox('raccoon/raccoon/raccoon-1.txt')
-    visualize(image, bbox, [0,], {0:'raccoon'})
+    image = visualize(image, bbox, [0,], {0:'raccoon'})
 
 if __name__ == '__main__':
     test()
