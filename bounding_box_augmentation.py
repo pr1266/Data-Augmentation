@@ -18,9 +18,11 @@ classes = {
     'normal': 0,
     'broken': 1
 }
+
+#! you can find more augmentation methods on PyTorch and Albumentation Docs
 cfg = {
     'format': 'yolo',
-    'target_size': (400, 400),
+    'target_size': (640, 640),
     'bounding_box': [
         A.CenterCrop(800, 800),
         A.RandomCrop(800, 800),
@@ -28,7 +30,7 @@ cfg = {
     ],
     'inner_bounding_box': [
         CustomTransform(my_f.adjust_saturation, 8),
-        CustomGaussianBlurTransform(None, 20),
+        CustomGaussianBlurTransform(None, 21),
     ]
 }
 
@@ -174,24 +176,21 @@ class InnerBoundingBoxAugmentation:
                     b = dh - 1
 
                 cropped = img[t:b,l:r]
-                # tr = Compose([
-                #     CustomTransform(my_f.adjust_saturation, 8),
-                # ])
-                new_cropped = transform(cropped)
+                new_cropped = transform(transforms.ToPILImage()(cropped))
                 img[t:b,l:r] = new_cropped
             
-            image_save_path = self.save_dir + '/' + str(index) + str(self.index) + '.jpg'
-            bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + self.prefix
+            image_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'inner_bbox' + '.jpg'
+            bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'inner_bbox' + self.prefix
 
-            image_to_save = transforms.ToTensor()(transformed_image)
+            image_to_save = transforms.ToTensor()(img)
             #! resize whole image to target size:
-            image_to_save = transform.Resize()(image_to_save)
+            image_to_save = transforms.Resize(self.target_size)(image_to_save)
             
             save_image(image_to_save, image_save_path)
             with open(bbox_save_path, 'w') as f:
                 #! just implemented for yolo format because im currently use it
                 #! other formats will be added soon
-                for index, i in enumerate(transformed_bboxs):             
+                for index, i in enumerate(bboxs):  
                     vals = [str(val) for val in list(i[:-1])]                    
                     to_write = i[-1] + ' ' + ' '.join(vals)+'\n'                    
                     f.writelines(to_write)
@@ -209,55 +208,17 @@ class InnerBoundingBoxAugmentation:
                 #! we not use the last resize augmentation method
                 #! why? because we are going to change inner bbox content not the whole image
                 #! and in the end we apply resize augmentation on whole image but not bbox content 
-                t = A.Compose([
+                t = Compose([
                     augmentation,
-                ],
-                bbox_params=A.BboxParams(format=self.format))
+                ])
                 _transform.append(t)
         return _transform
 
 def main():
     dataset = MyDataset('teeth_data/', 'yolo')
-    bbox_augmentation = BoundingBoxAugmentation(cfg)
+    bbox_augmentation = InnerBoundingBoxAugmentation(cfg)
     for i in range(len(dataset)):
         bbox_augmentation(dataset[i])
 
 if __name__ == '__main__':
     main()
-
-# transform = A.Compose(config['1st_stage']['bounding_box'], bbox_params=A.BboxParams(format='yolo'))
-# transformed = transform(image=image, bboxes=bbox)
-# transformed_image = transformed['image']
-# transformed_bboxes = transformed['bboxes']
-# new_image = transformed_image
-# dh, dw, _ = new_image.shape
-# for box in transformed_bboxes:
-#     x, y, w, h, c = box
-
-#     l = int((x - w / 2) * dw)
-#     r = int((x + w / 2) * dw)
-#     t = int((y - h / 2) * dh)
-#     b = int((y + h / 2) * dh)
-    
-#     if l < 0:
-#         l = 0
-#     if r > dw - 1:
-#         r = dw - 1
-#     if t < 0:
-#         t = 0
-#     if b > dh - 1:
-#         b = dh - 1
-
-#     cropped = new_image[t:b,l:r]
-#     tr = Compose([
-#             # transforms.ToPILImage(),
-#             CustomTransform(my_f.adjust_saturation, 8),
-#         ])
-#     new_cropped = tr(cropped)
-#     new_image[t:b,l:r] = new_cropped
-
-#     color = (255, 0, 0) if c == 'broken' else (0, 255, 0) 
-#     cv2.rectangle(new_image, (l, t), (r, b), color, 6)
-
-# plt.imshow(new_image)
-# plt.show()
