@@ -7,6 +7,7 @@ from custom_functional_transforms import *
 import torchvision.transforms.functional as my_f
 from torchvision.transforms import Compose
 from torchvision import transforms
+from torch.utils.data import Dataset
 from utils import *
 from torchvision.utils import save_image
 
@@ -100,8 +101,8 @@ class BoundingBoxAugmentation:
             transformed = transform(image=img, bboxes=bbox)
             transformed_image = transformed['image']                
             transformed_bboxs = transformed['bboxes']
-            image_save_path = self.save_dir + '/' + str(index) + str(self.index) + '.jpg'
-            bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + self.prefix
+            image_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'bbox' + '.jpg'
+            bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'bbox' + self.prefix
             image_to_save = transforms.ToTensor()(transformed_image)
             save_image(image_to_save, image_save_path)
             with open(bbox_save_path, 'w') as f:
@@ -150,16 +151,42 @@ class InnerBoundingBoxAugmentation:
             os.makedirs(self.save_dir)
 
     def __call__(self, data):
-        index=0
+        index = 0
         img = data['image']
-        bbox = data['bbox']
+        bboxs = data['bbox']
+        dh, dw, _ = img.shape
+
         for transform in self.transforms:
-            transformed = transform(image=img, bboxes=bbox)
-            transformed_image = transformed['image']                
-            transformed_bboxs = transformed['bboxes']
+            for bbox in bboxs:
+                x, y, w, h, c = bbox
+                l = int((x - w / 2) * dw)
+                r = int((x + w / 2) * dw)
+                t = int((y - h / 2) * dh)
+                b = int((y + h / 2) * dh)
+                
+                if l < 0:
+                    l = 0
+                if r > dw - 1:
+                    r = dw - 1
+                if t < 0:
+                    t = 0
+                if b > dh - 1:
+                    b = dh - 1
+
+                cropped = img[t:b,l:r]
+                # tr = Compose([
+                #     CustomTransform(my_f.adjust_saturation, 8),
+                # ])
+                new_cropped = transform(cropped)
+                img[t:b,l:r] = new_cropped
+            
             image_save_path = self.save_dir + '/' + str(index) + str(self.index) + '.jpg'
             bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + self.prefix
+
             image_to_save = transforms.ToTensor()(transformed_image)
+            #! resize whole image to target size:
+            image_to_save = transform.Resize()(image_to_save)
+            
             save_image(image_to_save, image_save_path)
             with open(bbox_save_path, 'w') as f:
                 #! just implemented for yolo format because im currently use it
@@ -178,9 +205,12 @@ class InnerBoundingBoxAugmentation:
         if 'inner_bounding_box' in self.cfg.keys():
             for augmentation in cfg['inner_bounding_box']:
                 #! to change:
+                #! in the inner bounding box augmentation
+                #! we not use the last resize augmentation method
+                #! why? because we are going to change inner bbox content not the whole image
+                #! and in the end we apply resize augmentation on whole image but not bbox content 
                 t = A.Compose([
                     augmentation,
-                    A.Resize(self.target_size[0], self.target_size[1])
                 ],
                 bbox_params=A.BboxParams(format=self.format))
                 _transform.append(t)
@@ -196,8 +226,6 @@ if __name__ == '__main__':
     main()
 
 # transform = A.Compose(config['1st_stage']['bounding_box'], bbox_params=A.BboxParams(format='yolo'))
-
-
 # transformed = transform(image=image, bboxes=bbox)
 # transformed_image = transformed['image']
 # transformed_bboxes = transformed['bboxes']
