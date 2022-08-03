@@ -8,9 +8,9 @@ from your small one.
 
 ### Built With
 
-*[![Next][Next.js]][Next-url]
+*[![PyTorch][Next.js]][Next-url]
 
 
 
-[Next.js]: [https://img.shields.io/badge/pytorch-ff8200?style=for-the-badge&logo=PyTorch&logoColor=white]
+[Next.js]: https://img.shields.io/badge/pytorch-ff8200?style=for-the-badge&logo=PyTorch&logoColor=white
 [Next-url]: https://pytorch.org/
