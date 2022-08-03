@@ -17,4 +17,4 @@ from your small one.
 [torchurl]: https://pytorch.org/
 
 [alblogo]: https://img.shields.io/badge/Albumentations-FFFFFF?style=for-the-badge
-[alblogo]: https://albumentations.ai/
+[alburl]: https://albumentations.ai/
