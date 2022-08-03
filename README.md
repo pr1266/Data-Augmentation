@@ -5,3 +5,7 @@ from your small one.
 
 ## About Project
 ![alt text](https://github.com/pr1266/data_augmentation/blob/master/src/final.jpg)
+
+### Built With
+
+* [![PyTorch][https://img.shields.io/badge/pytorch-ff8200?style=for-the-badge&logo=PyTorch&logoColor=white]][https://github.com/pytorch/pytorch]
