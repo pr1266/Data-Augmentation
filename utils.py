@@ -5,6 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from cv2 import cv2
 import glob
+import random
+import torch
+from torchvision.utils import make_grid, save_image
+from torchvision import transforms
 
 BOX_COLOR = (255, 0, 0)
 TEXT_COLOR = (255, 255, 255)
@@ -108,7 +112,7 @@ def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=2):
         t = 0
     if b > dh - 1:
         b = dh - 1
-
+        
     cv2.rectangle(img, (l, t), (r, b), color=color, thickness=thickness)
     ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)  
     cv2.rectangle(img, (l, t - int(1.3 * text_height)), (l + text_width, t), BOX_COLOR, -1)
@@ -130,7 +134,9 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
     for bbox, category_id in zip(bboxes, category_ids):
         class_name = category_id_to_name[category_id]
         img = visualize_bbox(img, bbox, class_name)
-    return img
+    # plt.imshow(img)
+    # plt.show()
+    return transforms.ToTensor()(img)
 
 def load_bbox(txt_path):
 
@@ -141,7 +147,7 @@ def load_bbox(txt_path):
     bbox = []
     for line in lines:
         line = line.replace('\n', '')
-        elements = line.split(',')
+        elements = line.split(' ')
         single_box = [float(i) for i in elements[1:]]
         single_box.append(elements[0])
         bbox.append(single_box)
@@ -154,10 +160,21 @@ def load_image(img_path):
 
 
 def test():
+
+    image = cv2.imread('test_data/00inner_bbox.jpg')
+    bbox = load_bbox('test_data/00inner_bbox.txt')
+    visualize(image, bbox, [0], {0:'raccoon'})
+    
     os.system('cls')
-    image = load_image('raccoon/raccoon/raccoon-1.jpg')
-    bbox = load_bbox('raccoon/raccoon/raccoon-1.txt')
-    image = visualize(image, bbox, [0,], {0:'raccoon'})
+    list = glob.glob('test_data/*.jpg')
+    list = random.sample(list, 36)
+    bbox = [load_bbox(i[:-3]+'txt') for i in list]
+    
+    list = [cv2.imread(i) for i in list]
+    image_list = [visualize(list[i], bbox[i], [0], {0:'raccoon'}) for i in range(len(list))]
+    grid = make_grid(image_list, nrow=6)
+    save_image(grid, 'final.jpg')
 
 if __name__ == '__main__':
     test()
+
