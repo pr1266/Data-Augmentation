@@ -3,7 +3,10 @@ from matplotlib import pyplot as plt
 import albumentations as A
 import glob
 import os
+import PIL
+from numpy import isin
 from custom_functional_transforms import *
+import custom_functional_transforms
 import torchvision.transforms.functional as my_f
 from torchvision.transforms import Compose
 from torchvision import transforms
@@ -20,10 +23,9 @@ from your samll one. just change data_dir to your txt-jpg containing directory a
 """
 os.system('cls')
 
-data_dir = 'teeth_data/'
+data_dir = 'raccoon/raccoon'
 classes = {
-    'normal': 0,
-    'broken': 1
+    'raccoon': 0,
 }
 
 #! you can find more augmentation methods on PyTorch and Albumentation Docs
@@ -31,12 +33,24 @@ cfg = {
     'format': 'yolo',
     'target_size': (640, 640),
     'bounding_box': [
-        A.CenterCrop(800, 800),
-        A.RandomCrop(800, 800),
-        A.VerticalFlip(True, 1.0)
+        A.CenterCrop(100, 100),
+        A.RandomCrop(100, 100),
+        CustomTransform(F.adjust_brightness, 3.0),
+        CustomTransform(F.adjust_contrast, 4.2),
+        CustomTransform(F.adjust_sharpness, 3.0),
+        # transforms.Grayscale(),
+        CustomTransform(my_f.adjust_saturation, 8),
+        CustomTransform(F.adjust_hue, -0.3),
+        CustomGaussianBlurTransform(None, 21),
     ],
     'inner_bounding_box': [
+        transforms.RandomEqualize(1.0),
+        CustomTransform(F.adjust_brightness, 3.0),
+        CustomTransform(F.adjust_contrast, 4.2),
+        CustomTransform(F.adjust_sharpness, 3.0),
+        # transforms.Grayscale(),
         CustomTransform(my_f.adjust_saturation, 8),
+        CustomTransform(F.adjust_hue, -0.3),
         CustomGaussianBlurTransform(None, 21),
     ]
 }
@@ -106,10 +120,19 @@ class BoundingBoxAugmentation:
         index=0
         img = data['image']
         bbox = data['bbox']
+        
         for transform in self.transforms:
-            transformed = transform(image=img, bboxes=bbox)
-            transformed_image = transformed['image']                
-            transformed_bboxs = transformed['bboxes']
+            new_img = img
+            
+            if isinstance(transform, transforms.Compose):
+                transformed_image = transform(new_img)
+                transformed_bboxs = bbox
+
+            else:
+                transformed = transform(image=new_img, bboxes=bbox)
+                transformed_image = transformed['image']
+                transformed_bboxs = transformed['bboxes']
+
             image_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'bbox' + '.jpg'
             bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'bbox' + self.prefix
             image_to_save = transforms.ToTensor()(transformed_image)
@@ -130,11 +153,18 @@ class BoundingBoxAugmentation:
         _transform = []
         if 'bounding_box' in self.cfg.keys():
             for augmentation in cfg['bounding_box']:
-                t = A.Compose([
-                    augmentation,
-                    A.Resize(self.target_size[0], self.target_size[1])
-                ],
-                bbox_params=A.BboxParams(format=self.format))
+                t = None
+                if type(augmentation) != custom_functional_transforms.CustomTransform and type(augmentation) != custom_functional_transforms.CustomGaussianBlurTransform:
+                    t = A.Compose([
+                        augmentation,
+                        A.Resize(self.target_size[0], self.target_size[1])
+                    ],
+                    bbox_params=A.BboxParams(format=self.format))
+                else:
+                    t = transforms.Compose([
+                        augmentation,
+                        transforms.Resize((self.target_size[0], self.target_size[1]))
+                    ])
                 _transform.append(t)
         return _transform
 
@@ -166,6 +196,7 @@ class InnerBoundingBoxAugmentation:
         dh, dw, _ = img.shape
 
         for transform in self.transforms:
+            new_image = img
             for bbox in bboxs:
                 x, y, w, h, c = bbox
                 l = int((x - w / 2) * dw)
@@ -183,13 +214,16 @@ class InnerBoundingBoxAugmentation:
                     b = dh - 1
 
                 cropped = img[t:b,l:r]
-                new_cropped = transform(transforms.ToPILImage()(cropped))
-                img[t:b,l:r] = new_cropped
+                if isinstance(cropped, PIL.Image.Image):
+                    new_cropped = transform(cropped)
+                else:
+                    new_cropped = transform(transforms.ToPILImage()(cropped))
+                new_image[t:b,l:r] = new_cropped
             
             image_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'inner_bbox' + '.jpg'
             bbox_save_path = self.save_dir + '/' + str(index) + str(self.index) + 'inner_bbox' + self.prefix
 
-            image_to_save = transforms.ToTensor()(img)
+            image_to_save = transforms.ToTensor()(new_image)
             #! resize whole image to target size:
             image_to_save = transforms.Resize(self.target_size)(image_to_save)
             
@@ -222,9 +256,11 @@ class InnerBoundingBoxAugmentation:
         return _transform
 
 def main():
-    dataset = MyDataset('teeth_data/', 'yolo')
-    bbox_augmentation = InnerBoundingBoxAugmentation(cfg)
+    dataset = MyDataset('raccoon/raccoon/', 'yolo')
+    inner_bbox_augmentation = InnerBoundingBoxAugmentation(cfg)
+    bbox_augmentation = BoundingBoxAugmentation(cfg)
     for i in range(len(dataset)):
+        inner_bbox_augmentation(dataset[i])
         bbox_augmentation(dataset[i])
 
 if __name__ == '__main__':
