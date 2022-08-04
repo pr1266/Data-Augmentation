@@ -46,8 +46,26 @@ cfg = {
     ]
 }
 ```
+for object detection tasks with bounding boxes, you can perform both bounding-box and inner-bounding-box augmentation
+if you want to add spatial-level augmentation like crop, rotate, padding or flip, you must add it through Albumentation and pass the bboxes
+and formats to it
+and also you can convert Pascal-VOC format to your ideal format like YOLO and COCO using convert functions implemented in utils.py
 
+```python
+import albumentations as A
 
+t = A.Compose([
+        augmentation,
+        A.Resize(width, height)
+    ],
+    bbox_params=A.BboxParams(format=self.format)) #for example yolo
+```
+
+in case of using torchvision functional transforms, you must create a CustomTransform instance and pass that
+functional transformer to it. (implemented in detail in custom_functional_transformers)
+
+## Some Interesting Results !
+![alt text](https://github.com/pr1266/data_augmentation/blob/master/src/final_res.jpg)
 
 [torchlogo]: https://img.shields.io/badge/pytorch-ff8200?style=for-the-badge&logo=PyTorch&logoColor=white
 [torchurl]: https://pytorch.org/
