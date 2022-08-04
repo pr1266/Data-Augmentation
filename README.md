@@ -69,7 +69,7 @@ functional transformer to it. (implemented in detail in custom_functional_transf
 
 ## Contact
 
-* gmail: pour.pourya1999@gmail.com
+* ![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)()  pour.pourya1999@gmail.com
 * [![Linkedin](https://i.stack.imgur.com/gVE0j.png) LinkedIn](https://www.linkedin.com/in/pr1266/)
 
 ## Contributing
