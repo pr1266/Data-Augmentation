@@ -8,6 +8,10 @@ from your small one.
 * [![Albumentation][alblogo]][alburl]
 
 ## About Project
+Data augmentation is a simple but important stage in data preparation. In many real AI projects, its so hard to
+gather enough data to train DL algorithms. So this is where data augmentation helps us to generate new data based on
+a few samples that we have. You can label your data using annotation softwares and leave the rest to pytorch and albumentations
+
 ![alt text](https://github.com/pr1266/data_augmentation/blob/master/src/final.jpg)
 
 # how does this project help you?
