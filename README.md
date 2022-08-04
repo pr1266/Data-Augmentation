@@ -67,6 +67,10 @@ functional transformer to it. (implemented in detail in custom_functional_transf
 ## Some Interesting Results !
 ![alt text](https://github.com/pr1266/data_augmentation/blob/master/src/final_res.jpg)
 
+## Contact
+
+Pourya Pouryeganeh - pour.pourya1999@gmail.com
+[![Linkedin](https://i.stack.imgur.com/gVE0j.png) LinkedIn](https://www.linkedin.com/in/pr1266/)
 
 ## Contributing
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
