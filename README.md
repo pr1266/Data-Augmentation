@@ -14,14 +14,14 @@ a few samples that we have. You can label your data using annotation softwares a
 
 ![alt text](https://github.com/pr1266/data_augmentation/blob/master/src/final.jpg)
 
-# how does this project help you?
-we designed it to performing image augmentation for:
+# How does this project help you?
+We designed it to performing image augmentation for:
 * Normal Classification
 * Object Detection
 * Semantic Segmentation (soon)
 * Keypoint Detection (soon)
 
-for different backbones witht different input size you can set the output size according to your desired architecture 
+For different backbones witht different input size you can set the output size according to your desired architecture 
 
 ```python
 cfg = {
@@ -50,10 +50,10 @@ cfg = {
     ]
 }
 ```
-for object detection tasks with bounding boxes, you can perform both bounding-box and inner-bounding-box augmentation
-if you want to add spatial-level augmentation like crop, rotate, padding or flip, you must add it through Albumentation and pass the bboxes
+For object detection tasks with bounding boxes, you can perform both bounding-box and inner-bounding-box augmentation
+If you want to add spatial-level augmentation like crop, rotate, padding or flip, you must add it through Albumentation and pass the bboxes
 and formats to it
-and also you can convert Pascal-VOC format to your ideal format like YOLO and COCO using convert functions implemented in utils.py
+Also you can convert Pascal-VOC format to your ideal format like YOLO and COCO using convert functions implemented in utils.py
 
 ```python
 import albumentations as A
@@ -65,8 +65,8 @@ t = A.Compose([
     bbox_params=A.BboxParams(format=self.format)) #for example yolo
 ```
 
-in case of using torchvision functional transforms, you must create a CustomTransform instance and pass that
-functional transformer to it. (implemented in detail in custom_functional_transformers)
+In case of using torchvision functional transforms, you must create a CustomTransform instance and pass that
+functional transformer to it. (Implemented in detail in custom_functional_transformers)
 
 ## Some Interesting Results !
 ![alt text](https://github.com/pr1266/data_augmentation/blob/master/src/final_res.jpg)
